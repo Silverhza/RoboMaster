@@ -1,0 +1,196 @@
+<launch>
+  <arg name="node_namespace"            value="$(optenv CAR_ID)"/>
+  <arg name="amcl_map"                  default="lidar_scan"/>
+  <arg name="planning_map"              default="icra2021"/>
+  <arg name="enable_lidar_detection"    default="true" />
+  <arg name="team_type"            value="$(optenv TEAM_TYPE)"/>
+  <!--
+  <include file="$(find fkie_master_discovery)/launch/master_discovery.launch" >
+  </include>
+  -->
+  <!-- Run the robot sdk interface -->
+  <include file="$(find roborts_bringup)/launch/base.launch" />
+
+  <!-- Publish static tf -->
+  <!-- <include file="$(find roborts_bringup)/launch/static_tf.launch" /> -->
+  <include file="$(find roborts_bringup)/launch/static_tf_gimbal.launch" >
+  </include>
+
+  
+  <!--
+  <include file="$(find rplidar_ros)/launch/rplidar_a3.launch" >
+  </include>
+
+  <include file="$(find rplidar_ros)/launch/rplidar_s1.launch" >
+  </include>
+
+  <node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger" output="screen" ns="$(arg node_namespace)">
+    <param name="destination_frame" value="$(optenv CAR_ID)/gimbal_fixed"/>
+    <param name="scan_destination_topic" value="/$(optenv CAR_ID)/scan"/>
+    <param name="laserscan_topics" value ="/$(optenv CAR_ID)/front_scan /$(optenv CAR_ID)/back_scan" /> 
+    <param name="angle_min" value="-3.1415926"/>
+    <param name="angle_max" value="3.1415926"/>
+    <param name="angle_increment" value="0.0058"/>
+    <param name="scan_time" value="0.0333333"/>
+    <param name="range_min" value="0.0"/>
+    <param name="range_max" value="30.0"/>
+  </node>
+  -->
+  
+
+    <!--OPEN XENS IMU-->
+   <node  name="xsens_mti_node" pkg="xsens_mti_driver" type="xsens_mti_node" output="screen">
+        <rosparam command="load" file="$(find xsens_mti_driver)/param/xsens_mti_node.yaml" />
+        <remap from="/imu/data" to="/$(optenv CAR_ID)/imu/data"/>
+    </node>
+
+  
+    <!--OPEN HOKUYO -->
+  <node name="urg_node" pkg="urg_node" type="urg_node" output="screen">
+    <param name="ip_address" value="192.168.0.10"/>
+    <param name="serial_port" value="/dev/ttyACM0"/>
+    <param name="serial_baud" value="115200"/>
+    <param name="frame_id" value="/$(optenv CAR_ID)/front_laser_link"/>
+    <param name="calibrate_time" value="true"/>
+    <param name="publish_intensity" value="false"/>
+    <param name="publish_multiecho" value="false"/>
+    <param name="angle_min" value="-1.04719753"/>
+    <param name="angle_max" value="1.04719753"/>
+    <remap from="/scan" to="/$(optenv CAR_ID)/scan"/>
+  </node>
+<!--
+    <node pkg="laser_scan_matcher" type="laser_scan_matcher_node" name="laser_scan_matcher_node" output="screen">
+    <remap from="/scan" to="/$(optenv CAR_ID)/scan"/>
+    <remap from="/odom" to="/$(optenv CAR_ID)/odom"/>
+    <remap from="/imu/data" to="/$(optenv CAR_ID)/imu/data"/>
+    <remap from="/initialpose" to="/$(optenv CAR_ID)/initialpose"/>
+    <param name="base_frame" value="/$(optenv CAR_ID)/base_link"/>
+    <param name="publish_tf" value="false"/>
+    <param name="fixed_frame" value="/map"/>
+    <param name="use_imu" value="true"/>
+    <param name="use_odom" value="true"/>
+    <param name="publish_pose_stamped" value="true"/>
+    <param name="max_iterations" value="100"/>
+  </node>
+-->
+
+  <!--Load parameters for localization node  -->
+  <rosparam command="load" file="$(find roborts_localization)/config/localization.yaml" ns="$(arg node_namespace)"/>
+  <param name="$(arg node_namespace)/odom_frame"           value="/$(arg node_namespace)/odom"/>
+  <!--<param name="$(arg node_namespace)/base_frame"           value="/$(arg node_namespace)/base_link"/>-->
+  <param name="$(arg node_namespace)/base_frame"           value="/$(arg node_namespace)/gimbal_fixed"/>
+
+
+    <group if="$(eval team_type == 'BLUE')">
+      <param name="/$(arg node_namespace)/initial_pose_a"      value="0.7"/>
+      <param name="/$(arg node_namespace)/initial_pose_x"      value="0.94"/>
+      <param name="/$(arg node_namespace)/initial_pose_y"      value="0.84"/>
+    </group>
+
+    <group if="$(eval team_type == 'RED')">
+      <param name="/$(arg node_namespace)/initial_pose_a"      value="-1.58"/>
+      <param name="/$(arg node_namespace)/initial_pose_x"      value="7.50"/>
+      <param name="/$(arg node_namespace)/initial_pose_y"      value="3.93"/>
+    </group>
+
+    <node name="amcl_map_server" pkg="map_server" type="map_server" args="$(find roborts_bringup)/maps/$(arg amcl_map).yaml" respawn="false">
+    <remap from="/static_map"          to="/amcl_static_map"/>
+    <remap from="/map"                 to="/amcl_map"/>
+    </node>
+
+    <!-- Run the map server for planning-->
+    <node name="planning_map_server" pkg="map_server" type="map_server" args="$(find roborts_bringup)/maps/$(arg planning_map).yaml" respawn="false">
+    </node>
+
+
+
+  <group if="$(eval node_namespace == 'CAR1')">
+
+    <group if="$(eval team_type == 'BLUE')">
+      <param name="/$(arg node_namespace)/initial_pose_a"      value="1"/>
+      <param name="/$(arg node_namespace)/initial_pose_x"      value="1.08"/>
+      <param name="/$(arg node_namespace)/initial_pose_y"      value="2.9"/>
+    </group>
+
+    <group if="$(eval team_type == 'RED')">
+      <param name="/$(arg node_namespace)/initial_pose_a"      value="3.12"/>
+      <param name="/$(arg node_namespace)/initial_pose_x"      value="6.89"/>
+      <param name="/$(arg node_namespace)/initial_pose_y"      value="1.83"/>
+    </group>
+
+  </group>
+
+  <rosparam command="load" file="$(find roborts_localization)/amcl/config/amcl.yaml" ns="$(arg node_namespace)"/>
+
+  <!-- Run the localization node -->
+
+  <node pkg="roborts_localization" type="localization_node" name="localization_node" respawn="false" output="screen" ns="$(arg node_namespace)">
+    <param name="laser_topic_name"    value="$(arg node_namespace)/scan"/>
+    <remap from="static_map"          to="/amcl_static_map"/>
+  </node>
+  
+  <!-- Run the ICP node -->
+  <!--<node pkg="my_icp" type="my_icp_node" name="$(arg node_namespace)_icp_node" output="screen" respawn="false">
+  </node> -->
+
+  
+  <!-- Run the analyser node -->
+  <node pkg="obstacle_analyser" type="obstacle_analyser_node" name="$(anon obstacle_analyser_node)" output="screen" respawn="false">
+  </node>
+
+  <!-- Run the global planner node -->
+  <node pkg="roborts_planning" type="global_planner_node" name="global_planner_node" respawn="false" output="screen" ns="$(arg node_namespace)">
+      <remap from="static_map"          to="/static_map"/>
+  </node>
+
+  <!-- Run the local planner node -->
+  <node pkg="roborts_planning" type="local_planner_node" name="local_planner_node" respawn="false" output="screen" ns="$(arg node_namespace)">
+    <remap from="odometry/filtered"                    to="odom"/>
+    <remap from="static_map"          to="/static_map"/>
+    <remap from="/cmd_vel_acc"                                  to="/$(arg node_namespace)/cmd_vel_acc" />
+    <remap from="/local_planner_node_action/feedback"           to="/$(arg node_namespace)/local_planner_node_action/feedback" />
+    <remap from="/local_planner_node_action/result"             to="/$(arg node_namespace)/local_planner_node_action/result" />
+    <remap from="/local_planner_node_action/status"             to="/$(arg node_namespace)/local_planner_node_action/status" />
+    <remap from="/local_planner_node_action/goal"               to="/$(arg node_namespace)/local_planner_node_action/goal" />
+    <remap from="/local_planner_node_action/cancel"             to="/$(arg node_namespace)/local_planner_node_action/cancel" />
+    <param name="timeout"    value="10.0"/>
+  </node>
+
+  <node name="behavior_test_node" pkg="roborts_decision" type="behavior_test_node" output="screen" ns="$(arg node_namespace)">
+    <!-- <remap from="/move_base_simple/goal" to="/$(arg node_namespace)/move_base_simple/goal" /> -->
+    <remap from="/move_base_simple/goal" to="/$(arg node_namespace)/move_base_simple/goal" />
+  </node>
+
+  <group if="$(arg enable_lidar_detection)">
+    <include file="$(find roborts_bringup)/launch/lidar_detection.launch">
+      <arg name="ns"         value="$(arg node_namespace)"/>
+    </include>
+  </group>
+
+
+  <!-- Run the braker node -->
+  <node pkg="roborts_planning" type="brake" name="$(arg node_namespace)_brake_node" output="screen" respawn="false">
+  </node>
+
+  <!-- Run the self inspection -->
+  <!-- <node pkg="roborts_planning" type="self_inspection" name="$(arg node_namespace)_self_inspection" output="screen" respawn="false">
+  </node> -->
+
+  <!-- Run the path receiver node -->
+  <node pkg="roborts_planning" type="path_receiver_c" name="$(arg node_namespace)_path_receiver_node" output="screen" respawn="false">
+  </node>
+
+  <!-- Run the escaper node -->
+  <node pkg="roborts_planning" type="escaper" name="$(arg node_namespace)_escaper_node" output="screen" respawn="false">
+  </node>
+
+  <!-- Run the enemy detection node 
+
+  <include file="$(find yolo)/launch/detector.launch" >
+  </include>
+
+  <include file="$(find autofire)/launch/shoot.launch" >
+  </include>
+  -->
+</launch>
+

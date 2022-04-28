@@ -1,0 +1,5 @@
+  KERNEL=="ttyACM*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE:="0777", SYMLINK+="serial_sdk"
+  KERNELS=="1-2.1",  ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE:="0777", SYMLINK+="rplidar_a3"
+  KERNELS=="1-2.4",  ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE:="0777", SYMLINK+="rplidar_s1"
+  KERNEL=="video*" , ATTRS{idVendor}=="05a3", ATTRS{idProduct}=="9230", MODE:="0777", SYMLINK+="camera_front"
+

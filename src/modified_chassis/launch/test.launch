@@ -1,0 +1,7 @@
+<launch>
+  <arg name="node_namespace" default="orange"/>
+  <node name="$(arg node_namespace)_modified_chassis_server_node" pkg="modified_chassis" type="chassis_server_node" output="screen">
+</node> 
+  <node name="$(arg node_namespace)_modified_chassis_client_node" pkg="modified_chassis" type="chassis_client_node">
+</node> 
+</launch>

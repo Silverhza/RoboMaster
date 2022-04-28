@@ -1,0 +1,12 @@
+first_map_only: false
+subscribe_to_updates: false
+track_unknown_space: true
+use_maximum: true
+unknown_cost_value: -1
+lethal_threshold: 100
+trinary_map: true
+topic_name: "/CAR2/game_zone_array_status"
+is_raw_rosmessage: true
+debuff_inflation: 0.1
+friend_radius: 0.6
+enemy_radius: 0.4

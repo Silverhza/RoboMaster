@@ -1,0 +1,17 @@
+<launch>
+
+    <arg name="node_namespace" value="$(optenv CAR_ID)"/>
+
+    <!--static_transform_publisher x y z yaw pitch roll frame_id child_frame_id-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="gimbal_front_laser_link_broadcaster" ns="$(arg node_namespace)"
+          args="0.10 0.0 0.0 0.0 0.0 3.14 $(arg node_namespace)/gimbal_fixed $(arg node_namespace)/front_laser_link" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="gimbal_base_imu_link_broadcaster" ns="$(arg node_namespace)"
+          args="0.098 -0.04 0.0 0.0 0.0 0.0 $(arg node_namespace)/gimbal_fixed $(arg node_namespace)/base_imu_link" />
+<!--
+    <node pkg="tf2_ros" type="static_transform_publisher" name="laser_camera_link_broadcaster" ns="$(arg node_namespace)"
+          args="-0.015  0.0 -0.2  0 0 0  $(arg node_namespace)/front_laser_link $(arg node_namespace)/camera" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="back_laser_link_broadcaster" ns="$(arg node_namespace)"
+          args="-0.20 0 0.05  0 0 0  $(arg node_namespace)/base_link $(arg node_namespace)/back_laser_link" />-->
+</launch>

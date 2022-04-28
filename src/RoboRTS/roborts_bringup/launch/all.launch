@@ -1,0 +1,91 @@
+<launch>
+  <arg name="node_namespace"            value="$(optenv CAR_ID)"/>
+  <arg name="map"                       default="our_icra2020"/>
+  <arg name="enable_lidar_detection"    default="true" />
+
+  <include file="$(find autofire)/launch/blueEnemy_shooter.launch" />
+
+  <include file="$(find fkie_master_discovery)/launch/master_discovery.launch" >
+  </include>
+  
+  <!-- Run the robot sdk interface -->
+  <include file="$(find roborts_bringup)/launch/base.launch" />
+
+  <!-- Publish static tf -->
+  <!-- <include file="$(find roborts_bringup)/launch/static_tf.launch" /> -->
+  <include file="$(find roborts_bringup)/launch/static_tf_gimbal.launch" >
+  </include>
+
+  <!-- Run the map server -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find roborts_bringup)/maps/$(arg map).yaml" respawn="false" />
+
+  <include file="$(find rplidar_ros)/launch/rplidar_a3.launch" >
+  </include>
+
+  <include file="$(find rplidar_ros)/launch/rplidar_s1.launch" >
+  </include>
+
+  <node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger" output="screen" ns="$(arg node_namespace)">
+    <param name="destination_frame" value="$(optenv CAR_ID)/base_link"/>
+    <param name="scan_destination_topic" value="/$(optenv CAR_ID)/scan"/>
+    <param name="laserscan_topics" value ="/$(optenv CAR_ID)/front_scan /$(optenv CAR_ID)/back_scan" /> <!-- LIST OF THE LASER SCAN TOPICS TO SUBSCRIBE -->
+    <param name="angle_min" value="-3.1415926"/>
+    <param name="angle_max" value="3.1415926"/>
+    <param name="angle_increment" value="0.0058"/>
+    <param name="scan_time" value="0.0333333"/>
+    <param name="range_min" value="0.0"/>
+    <param name="range_max" value="30.0"/>
+  </node>
+
+  <!--Load parameters for localization node  -->
+  <rosparam command="load" file="$(find roborts_localization)/config/localization.yaml" ns="$(arg node_namespace)"/>
+  <param name="$(arg node_namespace)/odom_frame"           value="/$(arg node_namespace)/odom"/>
+  <param name="$(arg node_namespace)/base_frame"           value="/$(arg node_namespace)/base_link"/>
+  <param name="/$(arg node_namespace)/initial_pose_a"      value="1.57"/>
+  <param name="/$(arg node_namespace)/initial_pose_x"      value="0.7"/>
+  <param name="/$(arg node_namespace)/initial_pose_y"      value="0.6"/>
+
+  <rosparam command="load" file="$(find roborts_localization)/amcl/config/amcl.yaml" ns="$(arg node_namespace)"/>
+
+  <!-- Run the localization node -->
+  <node pkg="roborts_localization" type="localization_node" name="localization_node" respawn="false" output="screen" ns="$(arg node_namespace)">
+    <param name="laser_topic_name"    value="$(arg node_namespace)/scan"/>
+    <remap from="static_map"          to="/static_map"/>
+  </node>
+  
+  <!-- Run the ICP node -->
+  <!-- <node pkg="my_icp" type="my_icp_node" name="$(arg node_namespace)_icp_node" output="screen" respawn="false">
+  </node> -->
+
+  
+  <!-- Run the analyser node -->
+  <node pkg="obstacle_analyser" type="obstacle_analyser_node" name="$(arg node_namespace)_obstacle_analyser_node" output="screen" respawn="false">
+  </node>
+
+  <!-- Run the global planner node -->
+  <node pkg="roborts_planning" type="global_planner_node" name="global_planner_node" respawn="false" output="screen" ns="$(arg node_namespace)">
+      <remap from="static_map"          to="/static_map"/>
+  </node>
+
+  <!-- Run the local planner node -->
+  <node pkg="roborts_planning" type="local_planner_node" name="local_planner_node" respawn="false" output="screen" ns="$(arg node_namespace)">
+    <remap from="odometry/filtered"                    to="odom"/>
+    <remap from="/cmd_vel_acc"                                  to="/$(arg node_namespace)/cmd_vel_acc" />
+    <remap from="/local_planner_node_action/feedback"           to="/$(arg node_namespace)/local_planner_node_action/feedback" />
+    <remap from="/local_planner_node_action/result"             to="/$(arg node_namespace)/local_planner_node_action/result" />
+    <remap from="/local_planner_node_action/status"             to="/$(arg node_namespace)/local_planner_node_action/status" />
+    <remap from="/local_planner_node_action/goal"               to="/$(arg node_namespace)/local_planner_node_action/goal" />
+    <remap from="/local_planner_node_action/cancel"             to="/$(arg node_namespace)/local_planner_node_action/cancel" />
+  </node>
+
+  <node name="behavior_test_node" pkg="roborts_decision" type="behavior_test_node" output="screen" ns="$(arg node_namespace)">
+    <remap from="/move_base_simple/goal" to="/$(arg node_namespace)/move_base_simple/goal" />
+  </node>
+
+  <group if="$(arg enable_lidar_detection)">
+    <include file="$(find roborts_bringup)/launch/lidar_detection.launch">
+      <arg name="ns"         value="$(arg node_namespace)"/>
+    </include>
+  </group>
+</launch>
+

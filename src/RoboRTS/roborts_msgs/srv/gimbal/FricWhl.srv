@@ -1,0 +1,5 @@
+bool open
+uint16 left
+uint16 right
+---
+bool received

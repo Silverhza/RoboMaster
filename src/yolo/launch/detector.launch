@@ -1,0 +1,19 @@
+<launch>
+
+    <arg name="node_namespace"            value="$(optenv CAR_ID)"/>
+
+    <arg name="enemy_color"               value="$(optenv enemy_color)"/>
+
+    <include file="$(find uvc_camera)/launch/camera.launch">
+    
+    </include>
+
+    <arg name="show" default="1"/>
+    <node name="yolo" pkg="yolo"  type="detector.py" args="-show $(arg show)" cwd="node" output="screen" ns="$(arg node_namespace)">
+        <param name="CAR_ID" value="$(arg node_namespace)"/>
+        <param name="enemy_color" value="$(arg enemy_color)"/>
+
+    </node>
+ 
+
+</launch>

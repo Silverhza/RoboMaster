@@ -1,0 +1,8 @@
+prefix=/home/two/roborts_ws/devel
+
+Name: my_icp
+Description: Description of my_icp
+Version: 0.0.1
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

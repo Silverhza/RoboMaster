@@ -1,0 +1,104 @@
+<!-- Demonstation of obstacle detector -->
+<launch>
+  <arg name="node_namespace" default="green"/>
+
+  <param name="use_sim_time" value="false"/>
+ 
+  <!-- <node name="map_to_scanner_base" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 map base_laser_link"/> -->
+  <!-- <node name="scanner_base_to_front_scanner" pkg="tf2_ros" type="static_transform_publisher" args="0.23565 -0.0005 0.06795 0 0 0 robot front_scanner"/>
+  <node name="scanner_base_to_rear_scanner" pkg="tf2_ros" type="static_transform_publisher" args="-0.23832 0.00542 0.09888 3.141592 0 0 robot rear_scanner"/> -->
+
+  <node name="$(arg node_namespace)_nodelet_manager" pkg="nodelet" type="nodelet" args="manager" output="screen">
+    <param name="num_worker_threads" value="20"/>
+    <remap from="scan"  to="$(arg node_namespace)/scan"/> 
+    <remap from="pcl"  to="$(arg node_namespace)/ResultCloud"/> 
+    <remap from="raw_obstacles"  to="$(arg node_namespace)/raw_obstacles"/>
+  </node>
+
+  <!-- <node name="scans_merger" pkg="nodelet" type="nodelet" args="load obstacle_detector/ScansMerger nodelet_manager">
+    <param name="active"            value="true"/>
+    <param name="publish_scan"      value="false"/>
+    <param name="publish_pcl"       value="true"/>
+
+    <param name="ranges_num"        value="1000"/>
+
+    <param name="min_scanner_range" value="0.05"/>
+    <param name="max_scanner_range" value="10.0"/>
+
+    <param name="min_x_range"       value="-10.0"/>
+    <param name="max_x_range"       value="10.0"/>
+    <param name="min_y_range"       value="-10.0"/>
+    <param name="max_y_range"       value="10.0"/>
+
+    <param name="fixed_frame_id"    value="map"/>
+    <param name="target_frame_id"   value="robot"/>
+  </node> -->
+
+  <node name="$(arg node_namespace)_obstacle_extractor" pkg="nodelet" type="nodelet" args="load obstacle_detector/ObstacleExtractor $(arg node_namespace)_nodelet_manager">
+    <param name="active"               value="true"/>
+    <param name="use_scan"             value="true"/>
+    <param name="use_pcl"              value="false"/>
+
+    <param name="use_split_and_merge"    value="false"/>
+    <param name="circles_from_visibles"  value="true"/>
+    <param name="discard_converted_segments" value="true"/>
+    <param name="transform_coordinates"  value="true"/>
+
+    <param name="min_group_points"     value="2"/>
+
+    <param name="max_group_distance"   value="0.1"/>
+    <param name="distance_proportion"  value="0.00628"/>
+    <param name="max_split_distance"   value="0.05"/>
+    <param name="max_merge_separation" value="0.1"/>
+    <param name="max_merge_spread"     value="0.1"/>
+    <param name="max_circle_radius"    value="0.6"/>
+    <param name="radius_enlargement"   value="0.3"/>
+
+    <param name="frame_id"             value="map"/>
+  </node>
+
+  <node name="$(arg node_namespace)_obstacle_tracker" pkg="nodelet" type="nodelet" args="load obstacle_detector/ObstacleTracker $(arg node_namespace)_nodelet_manager">
+    <param name="active"                  value="true"/>
+
+    <param name="loop_rate"               value="100.0"/>
+    <param name="tracking_duration"       value="0.5"/>
+    <param name="min_correspondence_cost" value="0.6"/>
+    <param name="std_correspondence_dev"  value="0.15"/>
+    <param name="process_variance"        value="0.01"/>  
+    <param name="process_rate_variance"   value="0.1"/>  
+    <param name="measurement_variance"    value="1.0"/>  
+
+    <param name="frame_id"                value="map"/>
+    
+    <remap from="tracked_obstacles"  to="$(arg node_namespace)/tracked_obstacles"/>
+  </node>
+
+  <node name="$(arg node_namespace)_obstacle_publisher" pkg="nodelet" type="nodelet" args="load obstacle_detector/ObstaclePublisher $(arg node_namespace)_nodelet_manager">
+    <param name="active"           value="true"/>
+    <param name="reset"            value="false"/>
+
+    <param name="fusion_example"   value="false"/>
+    <param name="fission_example"  value="false"/>
+
+    <param name="loop_rate"        value="10.0"/>
+    <param name="radius_margin"    value="0.2"/>
+
+
+    <!--                        [          B1          ][          B2          ][          B3          ][          B4          ][          B5          ][          B6          ][          B7          ][          B8          ][          B9          ][         Edg1         ][         Edg2         ][         Edg3         ][         Edg4         ]-->
+    <rosparam param="x_vector"> [0.18, 0.18, 1.23, 1.23, 1.62, 1.62, 2.40, 2.40, 1.60, 1.60, 1.92, 1.92, 3.58, 3.58, 4.73, 4.73, 3.80, 4.22, 4.53, 4.22, 3.67, 3.67, 4.78, 4.78, 6.44, 6.44, 6.80, 6.80, 5.96, 5.96, 6.68, 6.68, 7.24, 7.24, 8.30, 8.30, 0.18, 0.18, 0.18, 0.18, 2.00, 4.00, 6.00, 8.00, 8.15, 8.15, 8.15, 8.15, 2.00, 4.00, 6.00, 8.00]</rosparam>
+    <rosparam param="y_vector"> [3.60, 3.30, 3.30, 3.60, 2.54, 2.21, 2.21, 2.54, 1.19, 0.09, 0.09, 1.19, 3.76, 3.37, 3.37, 3.76, 2.38, 2.00, 2.32, 2.74, 1.32, 1.00, 1.00, 1.32, 4.44, 3.55, 3.55, 4.44, 2.56, 2.24, 2.24, 2.56, 1.48, 1.08, 1.08, 1.48, 0.00, 1.20, 2.40, 4.44, 4.44, 4.44, 4.44, 4.44, 3.6 , 2.40, 1.20, 0.28, 0.28, 0.28, 0.28, 0.28]</rosparam>
+    <rosparam param="r_vector"> [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]</rosparam>
+    <rosparam param="vx_vector">[0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00]</rosparam>
+    <rosparam param="vy_vector">[0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00]</rosparam>
+    
+    <param name="frame_id"         value="map"/>
+    <remap from="obstacles"        to="$(arg node_namespace)/obstacles"/>
+  </node>
+
+<!-- <node name="$(arg node_namespace)_rviz_2" pkg="rviz" type="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz">-->
+<!--   <remap from="scan"  to="$(arg node_namespace)/scan"/>-->
+<!-- </node>>-->
+
+
+</launch>
+<!-- -->

@@ -1,0 +1,12 @@
+<launch>
+  <arg name="ns"  default="$(optenv CAR_ID)"/>
+
+  <include file="$(find obstacle_detector)/launch/demo.launch">
+    <arg name="node_namespace" value="$(arg ns)"/>
+  </include>
+  <node name="$(arg ns)_obstacle_filter_node" pkg="obstacle_filter" type="obstacle_filter_node" output="screen">
+    <param name="inflation"    value="0.2"/>  
+  </node>
+
+</launch>
+

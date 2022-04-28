@@ -1,0 +1,8 @@
+# Define the goal
+uint32 cmd_id  # Specify which robot we want to recharge 1 enable 2 disable 
+---
+# Define the result
+bool is_finished #0 dead 1 no enemy
+---
+# Define a feedback message
+float32 percent_complete

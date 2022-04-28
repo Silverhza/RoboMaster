@@ -1,0 +1,19 @@
+<launch>
+<arg name="node_namespace"            value="$(optenv CAR_ID)"/>
+  <arg name="amcl_map"                  default="our_amcl_icra2020"/>
+  <arg name="planning_map"              default="icra2021"/>
+  <arg name="enable_lidar_detection"    default="true" />
+  <arg name="team_type"            value="$(optenv TEAM_TYPE)"/>
+
+  <node pkg="modified_chassis" type="modified_turret_node" name="modified_turret_node" output="screen" respawn="false" ns="$(arg node_namespace)">
+	<!-- remap from="$(arg node_namespace)/modified_turret_node/cmd_gimbal_angle"          to="$(arg node_namespace)/cmd_gimbal_angle"/>
+	remap from="$(arg node_namespace)/modified_turret_node/cmd_gimbal_angle"          to="$(arg node_namespace)/cmd_gimbal_angle"/> -->
+  </node>
+
+   <node pkg="modified_chassis" type="chassis_mode_server_node" name="chassis_mode_server_node" output="screen" respawn="false" ns="$(arg node_namespace)">
+   <!-- remap from="$(arg node_namespace)/modified_turret_node/cmd_gimbal_angle"          to="$(arg node_namespace)/cmd_gimbal_angle"/> -->
+  </node>
+
+</launch>
+
+

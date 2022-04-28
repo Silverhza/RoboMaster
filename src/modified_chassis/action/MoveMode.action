@@ -1,0 +1,8 @@
+# Define the goal
+bool mode  # Specify which robot we want to recharge
+---
+# Define the result
+bool is_finished
+---
+# Define a feedback message
+float32 state_keeping

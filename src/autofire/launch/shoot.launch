@@ -1,0 +1,17 @@
+<launch>
+
+    <arg name="node_namespace"            value="$(optenv CAR_ID)"/>
+
+    <arg name="enemy_color"               value="$(optenv enemy_color)"/>
+
+    <!-- <include file="$(find yolo)/launch/detector.launch" >
+    </include> -->
+
+
+    <node name="$(arg node_namespace)_shooter" pkg="autofire" type="shoot.py" output="screen">
+        <param name="CAR_ID" value="$(arg node_namespace)"/>
+        <param name="enemy_color" value="$(arg enemy_color)"/>
+    </node> 
+
+</launch>
+

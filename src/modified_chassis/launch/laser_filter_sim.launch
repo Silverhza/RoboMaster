@@ -1,0 +1,7 @@
+<launch>
+  <param name="use_sim_time" value="false"/>  
+<node pkg="rosbag" type="play" name="playe" output="screen" args="--clock /home/lima-yz/Desktop/2019-04-29-19-42-26.bag -l"/>
+
+  <node pkg="rviz" type="rviz" name="rviz_laser"/>
+
+</launch>

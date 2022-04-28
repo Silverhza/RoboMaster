@@ -1,0 +1,15 @@
+<launch>
+
+  <arg name="node_namespace" value="$(optenv CAR_ID)"/>
+
+  <rosparam command="load" file="$(find roborts_base)/config/roborts_base_parameter.yaml" />
+
+  <!-- Run the Base Node -->
+  <node pkg="roborts_base" type="roborts_base_node" name="roborts_base_node" output="screen" respawn="true" ns="$(arg node_namespace)">
+    <param name="car_id" value="$(arg node_namespace)" />
+  </node>
+
+  <node pkg="roborts_base" type="base_twist_node" name="base_twist_node" output="screen" respawn="true" ns="$(arg node_namespace)">
+  </node>
+
+</launch>

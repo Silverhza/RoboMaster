@@ -1,0 +1,9 @@
+<launch>
+<arg name="node_namespace" default="orange"/>
+
+<node name="$(arg node_namespace)_modified_turret_node" pkg="modified_chassis" type="modified_turret_node" output="screen">
+<param name="color" value="$(arg node_namespace)"/>
+</node>
+ 
+
+</launch>

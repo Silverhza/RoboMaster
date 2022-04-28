@@ -1,0 +1,8 @@
+prefix=/home/two/roborts_ws/devel
+
+Name: ros_yolo
+Description: Description of ros_yolo
+Version: 0.0.0
+Cflags: -I/home/two/roborts_ws/devel/include
+Libs: -L${prefix}/lib 
+Requires: message_runtime
